@@ -1,0 +1,203 @@
+import json
+
+nb_path = '/Users/aron/githubRepo/modelo-datafest-bcp/test/secondAttempt/LightGBM.ipynb'
+with open(nb_path, 'r') as f:
+    nb = json.load(f)
+
+phase5_code = [
+    "# Arrays para predicciones OOF y Test\n",
+    "oof_lgb = np.zeros(len(X_train))\n",
+    "test_preds_lgb = np.zeros(len(X_test))\n",
+    "\n",
+    "oof_cb = np.zeros(len(X_train))\n",
+    "test_preds_cb = np.zeros(len(X_test))\n",
+    "\n",
+    "oof_mlp = np.zeros(len(X_train))\n",
+    "test_preds_mlp = np.zeros(len(X_test))\n",
+    "\n",
+    "# -------------------------------------------------------------------------\n",
+    "# 1. Entrenamiento LightGBM\n",
+    "# -------------------------------------------------------------------------\n",
+    "print(\"1️⃣ Entrenando LightGBM...\")\n",
+    "final_lgb_params = {\n",
+    "    'objective': 'binary',\n",
+    "    'metric': 'auc',\n",
+    "    'boosting_type': 'gbdt',\n",
+    "    'max_depth': -1,\n",
+    "    'n_estimators': 3000,\n",
+    "    'subsample_freq': 1,\n",
+    "    'random_state': 42,\n",
+    "    'verbose': -1,\n",
+    "    'n_jobs': -1,\n",
+    "    **best_lgb_params\n",
+    "}\n",
+    "\n",
+    "for fold, (train_idx, val_idx) in enumerate(skf.split(X_train, y)):\n",
+    "    X_tr, y_tr = X_train.iloc[train_idx], y.iloc[train_idx]\n",
+    "    X_va, y_va = X_train.iloc[val_idx], y.iloc[val_idx]\n",
+    "\n",
+    "    model_lgb = lgb.LGBMClassifier(**final_lgb_params)\n",
+    "    model_lgb.fit(\n",
+    "        X_tr, y_tr,\n",
+    "        eval_set=[(X_va, y_va)],\n",
+    "        callbacks=[lgb.early_stopping(stopping_rounds=50, verbose=False)]\n",
+    "    )\n",
+    "\n",
+    "    oof_lgb[val_idx] = model_lgb.predict_proba(X_va)[:, 1]\n",
+    "    test_preds_lgb += model_lgb.predict_proba(X_test)[:, 1] / skf.n_splits\n",
+    "\n",
+    "print(f\"   👉 AUC LightGBM OOF: {roc_auc_score(y, oof_lgb):.5f}\")\n",
+    "\n",
+    "# -------------------------------------------------------------------------\n",
+    "# 2. Entrenamiento CatBoost\n",
+    "# -------------------------------------------------------------------------\n",
+    "print(\"\\n2️⃣ Entrenando CatBoost...\")\n",
+    "X_train_cb = X_train.copy()\n",
+    "X_test_cb = X_test.copy()\n",
+    "for col in cat_cols:\n",
+    "    X_train_cb[col] = X_train_cb[col].astype(str)\n",
+    "    X_test_cb[col] = X_test_cb[col].astype(str)\n",
+    "\n",
+    "for fold, (train_idx, val_idx) in enumerate(skf.split(X_train_cb, y)):\n",
+    "    X_tr, y_tr = X_train_cb.iloc[train_idx], y.iloc[train_idx]\n",
+    "    X_va, y_va = X_train_cb.iloc[val_idx], y.iloc[val_idx]\n",
+    "\n",
+    "    model_cb = CatBoostClassifier(\n",
+    "        eval_metric='AUC',\n",
+    "        random_seed=42,\n",
+    "        early_stopping_rounds=50,\n",
+    "        verbose=False,\n",
+    "        thread_count=-1\n",
+    "    )\n",
+    "\n",
+    "    train_pool = Pool(X_tr, y_tr, cat_features=cat_cols)\n",
+    "    val_pool = Pool(X_va, y_va, cat_features=cat_cols)\n",
+    "    test_pool = Pool(X_test_cb, cat_features=cat_cols)\n",
+    "\n",
+    "    model_cb.fit(train_pool, eval_set=val_pool, use_best_model=True)\n",
+    "    oof_cb[val_idx] = model_cb.predict_proba(val_pool)[:, 1]\n",
+    "    test_preds_cb += model_cb.predict_proba(test_pool)[:, 1] / skf.n_splits\n",
+    "\n",
+    "print(f\"   👉 AUC CatBoost OOF: {roc_auc_score(y, oof_cb):.5f}\")\n",
+    "\n",
+    "# -------------------------------------------------------------------------\n",
+    "# 3. Entrenamiento Red Neuronal Tabular (MLPClassifier)\n",
+    "# -------------------------------------------------------------------------\n",
+    "print(\"\\n3️⃣ Entrenando Red Neuronal Tabular por Capas (MLP - 128, 64, 32)...\")\n",
+    "from sklearn.neural_network import MLPClassifier\n",
+    "num_cols = [c for c in X_train.columns if c not in cat_cols]\n",
+    "\n",
+    "preprocessor = ColumnTransformer(\n",
+    "    transformers=[\n",
+    "        ('num', Pipeline([\n",
+    "            ('imputer', SimpleImputer(strategy='median')),\n",
+    "            ('scaler', StandardScaler())\n",
+    "        ]), num_cols),\n",
+    "        ('cat', OneHotEncoder(handle_unknown='ignore', sparse_output=False), cat_cols)\n",
+    "    ]\n",
+    ")\n",
+    "\n",
+    "for fold, (train_idx, val_idx) in enumerate(skf.split(X_train, y)):\n",
+    "    X_tr, y_tr = X_train.iloc[train_idx], y.iloc[train_idx]\n",
+    "    X_va, y_va = X_train.iloc[val_idx], y.iloc[val_idx]\n",
+    "\n",
+    "    X_tr_proc = preprocessor.fit_transform(X_tr)\n",
+    "    X_va_proc = preprocessor.transform(X_va)\n",
+    "    X_te_proc = preprocessor.transform(X_test)\n",
+    "\n",
+    "    # Red Neuronal con Early Stopping interno y Adam\n",
+    "    model_mlp = MLPClassifier(\n",
+    "        hidden_layer_sizes=(128, 64, 32),\n",
+    "        activation='relu',\n",
+    "        solver='adam',\n",
+    "        alpha=0.01,\n",
+    "        early_stopping=True,\n",
+    "        validation_fraction=0.1,\n",
+    "        max_iter=100,\n",
+    "        random_state=42\n",
+    "    )\n",
+    "    model_mlp.fit(X_tr_proc, y_tr)\n",
+    "\n",
+    "    oof_mlp[val_idx] = model_mlp.predict_proba(X_va_proc)[:, 1]\n",
+    "    test_preds_mlp += model_mlp.predict_proba(X_te_proc)[:, 1] / skf.n_splits\n",
+    "\n",
+    "print(f\"   👉 AUC Red Neuronal (MLP) OOF: {roc_auc_score(y, oof_mlp):.5f}\")"
+]
+
+phase6_code = [
+    "from sklearn.linear_model import LogisticRegression\n",
+    "from sklearn.model_selection import cross_val_predict\n",
+    "\n",
+    "# Matriz OOF de los 3 modelos (LGBM, CatBoost, Red Neuronal)\n",
+    "OOF_matrix = np.column_stack([oof_lgb, oof_cb, oof_mlp])\n",
+    "TEST_matrix = np.column_stack([test_preds_lgb, test_preds_cb, test_preds_mlp])\n",
+    "\n",
+    "# Escalar las predicciones OOF\n",
+    "meta_scaler = StandardScaler()\n",
+    "OOF_matrix_scaled = meta_scaler.fit_transform(OOF_matrix)\n",
+    "TEST_matrix_scaled = meta_scaler.transform(TEST_matrix)\n",
+    "\n",
+    "# Meta-Modelo Stacking: Regresión Logística\n",
+    "meta_model = LogisticRegression(penalty='l2', C=0.1, random_state=42)\n",
+    "\n",
+    "oof_final = cross_val_predict(meta_model, OOF_matrix_scaled, y, cv=skf, method='predict_proba')[:, 1]\n",
+    "\n",
+    "meta_model.fit(OOF_matrix_scaled, y)\n",
+    "final_test_predictions = meta_model.predict_proba(TEST_matrix_scaled)[:, 1]\n",
+    "\n",
+    "final_auc = roc_auc_score(y, oof_final)\n",
+    "final_gini = 2.0 * final_auc - 1.0\n",
+    "\n",
+    "print(\"=\" * 65)\n",
+    "print(\"⚖️ COEFICIENTES DEL META-MODELO (Regresión Logística - Stacking Real):\")\n",
+    "print(f\"   - Intercepto (Sesgo Base):           {meta_model.intercept_[0]:.4f}\")\n",
+    "print(f\"   - Coeficiente LightGBM (Leaf-Wise):  {meta_model.coef_[0][0]:.4f}\")\n",
+    "print(f\"   - Coeficiente CatBoost (Oblivious):  {meta_model.coef_[0][1]:.4f}\")\n",
+    "print(f\"   - Coeficiente Red Neuronal (MLP):    {meta_model.coef_[0][2]:.4f}\")\n",
+    "print(\"=\" * 65)\n",
+    "\n",
+    "print(f\"\\n⭐ AUC ESTIMADO FINAL (OOF Stacking):  {final_auc:.5f}\")\n",
+    "print(f\"🏆 GINI ESTIMADO FINAL:               {final_gini:.5f}\")\n",
+    "print(\"=\" * 65)\n",
+    "\n",
+    "# Guardar archivo de submission final\n",
+    "submission_df = pd.DataFrame({\n",
+    "    'id_cliente': test_ids,\n",
+    "    'prediccion': final_test_predictions\n",
+    "})\n",
+    "sub_path = 'submission_second_attempt.csv'\n",
+    "submission_df.to_csv(sub_path, index=False)\n",
+    "print(f\"\\n✅ Archivo '{sub_path}' generado con éxito.\")\n",
+    "submission_df.head()"
+]
+
+phase5_markdown = [
+    "## Fase 5: Entrenamiento Multimodelo (Stacking Tri-Arquitectura)\n",
+    "Entrenamos 3 modelos con naturalezas matemáticas diferentes:\n",
+    "1. **LightGBM:** Árboles con optimización leaf-wise.\n",
+    "2. **CatBoost:** Árboles simétricos (oblivious trees).\n",
+    "3. **Red Neuronal Tabular (MLPClassifier):** Multilayer Perceptron (128->64->32) para aprender superficies continuas."
+]
+
+phase6_markdown = [
+    "## Fase 6: Ensamblaje Óptimo por Meta-Aprendizaje (Stacking Real)\n",
+    "Usamos una **Regresión Logística** como Meta-Evaluador sobre las predicciones de los árboles y la Red Neuronal para aprender a qué modelo darle más confianza."
+]
+
+for cell in nb['cells']:
+    if cell['cell_type'] == 'code' and len(cell['source']) > 0:
+        src = "".join(cell['source'])
+        if '# Arrays para predicciones OOF y Test' in src or 'oof_lgb = np.zeros' in src:
+            cell['source'] = phase5_code
+        elif 'OOF_matrix = np.column_stack' in src or 'def loss_function' in src or 'from sklearn.linear_model import LogisticRegression' in src:
+            cell['source'] = phase6_code
+    elif cell['cell_type'] == 'markdown' and len(cell['source']) > 0:
+        if '## Fase 5:' in cell['source'][0]:
+            cell['source'] = phase5_markdown
+        elif '## Fase 6:' in cell['source'][0]:
+            cell['source'] = phase6_markdown
+
+with open(nb_path, 'w') as f:
+    json.dump(nb, f, indent=1)
+
+print("Notebook updated successfully with Neural Network & Proper Stacking!")
