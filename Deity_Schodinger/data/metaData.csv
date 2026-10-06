@@ -1,0 +1,27 @@
+column_name,description,type,notes
+id_cliente,Identificador único del cliente,int,Un cliente puede aparecer en varios meses y si tiene objetivo 1 no vuelve a aparecer en meses posteriores.
+mes,Mes calendario en formato AAAAMM,int,El split temporal se realiza por ventana mensual; el test suele ser el mes más reciente y suele ser un único mes.
+edad,Edad del cliente,int,Variable numérica
+ingresos,Ingresos anuales,float,Variable numérica
+ratio_deuda_ingresos,Ratio de deuda sobre ingresos,float,Variable numérica
+antiguedad_cuenta_meses,Antigüedad de la cuenta del cliente en meses,int,Variable numérica
+numero_productos,Número de productos bancarios activos del cliente,int,Variable numérica
+saldo_promedio,Saldo promedio de la cuenta,float,Variable numérica
+dias_ultima_transaccion,Días desde la última transacción,int,Variable numérica
+ocupacion,Categoría laboral del cliente,string,Variable categórica
+region,Región del cliente,string,Variable categórica
+canal_adquisicion,Canal por el que el cliente fue adquirido,string,Variable categórica
+banda_riesgo,Segmento de riesgo del cliente,string,Variable categórica
+dias_ultima_interaccion,Días desde la última interacción registrada con el cliente,int,Variable numérica
+tiene_tarjeta_credito,Indica si el cliente tiene tarjeta de crédito,boolean,Flag binaria
+activo_movil,Indica si el cliente está activo en la app móvil,boolean,Flag binaria
+es_nuevo_cliente,Indica si el cliente es nuevo,boolean,Flag binaria
+tiene_prestamo,Indica si el cliente tiene un préstamo activo,boolean,Flag binaria
+antiguedad_direccion_meses,Antigüedad de la dirección registrada en meses,int,Variable numérica
+visitas_web_ultimos_90_dias,Número de visitas web en los últimos 90 días,int,Variable numérica
+distancia_sucursal_km,Distancia aproximada a la sucursal más cercana,float,Variable numérica
+dispositivo_principal,Dispositivo principal registrado,string,Variable categórica
+dia_preferido_pago,Día preferido del mes para realizar pagos,int,Variable numérica
+tiene_seguro,Indica si el cliente tiene un seguro contratado,boolean,Flag binaria
+objetivo,Etiqueta objetivo de primera conversión en ese mes,boolean,Disponible solo en train y en la versión con etiqueta del test; no está en la competencia sin etiqueta.
+prediccion,Probabilidad de predicción del modelo,float,Columna requerida en la entrega; debe estar entre 0 y 1.
