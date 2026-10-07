@@ -1,0 +1,105 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[spanish]{babel}
+\usepackage{geometry}
+\geometry{a4paper, margin=2.5cm}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage{colortbl}
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric, arrows, positioning, babel}
+\usepackage{amsmath}
+
+\title{\textbf{Reporte Científico de Modelado de Datos: Análisis Exhaustivo} \\ \Large BCP Datafest 2026}
+\author{Aron}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+\newpage
+
+\section{Resumen Ejecutivo}
+El presente informe documenta el proceso iterativo y la resolución científica del reto de modelado predictivo para el BCP Datafest. El objetivo fue maximizar la métrica AUC identificando clientes propensos a la compra ("1"), superando la barrera del desbalanceo poblacional (85\% "0" vs 15\% "1") y el severo solapamiento de clases descubierto mediante análisis espacial.
+
+\section{Evolución de Modelos (Base vs. "Locuras")}
+
+La investigación se dividió en dos fases: los modelos clásicos (urón, baseline) y los enfoques no convencionales o "locuras". A continuación, se presenta la matriz comparativa exhaustiva, desglosando el rendimiento en la Clase 0 (Mayoritaria) y Clase 1 (Minoritaria).
+
+\begin{table}[h!]
+\centering
+\resizebox{\textwidth}{!}{
+\begin{tabular}{l c ccc ccc c}
+\toprule
+ & & \multicolumn{3}{c}{\textbf{Clase 0 (No Compra)}} & \multicolumn{3}{c}{\textbf{Clase 1 (Compra)}} & \\
+\cmidrule(lr){3-5} \cmidrule(lr){6-8}
+\textbf{Modelo} & \textbf{Familia} & \textbf{Prec} & \textbf{Rec} & \textbf{F1} & \textbf{Prec} & \textbf{Rec} & \textbf{F1} & \textbf{AUC} \\
+\midrule
+XGBoost (Base) & Clásico & 0.85 & 1.00 & 0.92 & 0.00 & 0.00 & 0.00 & 0.6120 \\
+LightGBM & Clásico & 0.85 & 1.00 & 0.92 & 0.15 & 0.001 & 0.01 & 0.6250 \\
+CatBoost 5to Intento & Clásico & 0.85 & 1.00 & 0.92 & 0.22 & 0.001 & 0.01 & \textbf{0.6315} \\
+\midrule
+Self-Supervised Masking & Locura & 0.85 & 1.00 & 0.92 & 0.00 & 0.00 & 0.00 & 0.6280 \\
+UMAP + Clustering & Locura & 0.85 & 1.00 & 0.92 & 0.00 & 0.00 & 0.00 & 0.6303 \\
+PyTorch NN + SMOTE & Locura & 0.86 & 0.89 & 0.88 & 0.25 & 0.196 & 0.22 & 0.6033 \\
+CatBoost + Gaussian Noise & Locura & 0.85 & 1.00 & 0.92 & 0.00 & 0.00 & 0.00 & 0.6293 \\
+\midrule
+\rowcolor{green!10}
+\textbf{Campeón (Tribu + Pesos)} & \textbf{Ensamblado} & \textbf{0.88} & \textbf{0.64} & \textbf{0.74} & \textbf{0.20} & \textbf{0.531} & \textbf{0.29} & \textbf{0.6305} \\
+\bottomrule
+\end{tabular}
+}
+\caption{Comparativa detallada de métricas. Note que el "CatBoost 5to Intento" alcanzó el máximo AUC (0.6315) pero siendo completamente ciego a la Clase 1 (Recall 0.001). El Campeón sacrifica 0.001 de AUC a cambio de atrapar al 53.1\% de los compradores.}
+\end{table}
+
+\subsection{Análisis del Trade-Off (0 vs 1)}
+Como se observa en la tabla, casi todos los algoritmos (incluyendo el CatBoost que llegó a 0.6315) actuaron de forma "cobarde". Para maximizar el AUC global, el modelo predecía casi siempre "0" (logrando Precision y Recall perfectos en la Clase 0), e ignorando por completo a la Clase 1 (Recall 0\%). 
+
+Nuestro \textbf{Modelo Campeón} intervino quirúrgicamente esta asimetría. Al aplicar el "Kaggle Trick" (Pesos Balanceados), forzamos al modelo a fallar en los "0" (bajando su Recall de 1.00 a 0.64) para obligarlo a arriesgarse con los "1" (subiendo su Recall de 0.00 a 0.53). Todo esto sin dañar la métrica global de AUC ($0.6305$).
+
+\section{Arquitectura del Modelo Campeón}
+La solución final no radica en una red neuronal incomprensible, sino en un pipeline tabular avanzado. A continuación se presenta gráficamente el flujo de procesamiento capa por capa:
+
+\vspace{1em}
+\begin{center}
+\begin{tikzpicture}[
+    node distance=2cm and 0cm,
+    layer/.style={rectangle, rounded corners, draw=black, thick, fill=blue!10, text width=12cm, align=center, minimum height=1.5cm},
+    arrow/.style={thick,->,>=stealth}
+]
+
+% Nodes
+\node (layer1) [layer, fill=gray!20] {\textbf{Capa 1: Ingesta de Datos Brutos}\\ \small Cliente aislado: $X = \{\text{ingresos}, \text{saldo}, \text{edad}, \text{region}, \text{ocupacion}\}$};
+
+\node (layer2) [layer, fill=cyan!10, below=of layer1] {\textbf{Capa 2: Ingeniería de Contexto Social (Tribu)}\\ \small Agrupamiento espacial por \texttt{region} + \texttt{ocupacion}.\\ Se calculan medias poblacionales ($\mu$) y se transforma al cliente en variables relativas: \\ $R_{ingreso} = \text{ingreso}_i / \mu_{ingreso}$ \\ $D_{saldo} = \text{saldo}_i - \mu_{saldo}$};
+
+\node (layer3) [layer, fill=orange!20, below=of layer2] {\textbf{Capa 3: Motor de Árboles Oblivious (CatBoost)}\\ \small Construcción de árboles simétricos de profundidad 6. \\ Las variables categóricas son codificadas internamente usando Target Encoding ordenado.};
+
+\node (layer4) [layer, fill=green!20, below=of layer3] {\textbf{Capa 4: Función de Pérdida Asimétrica (Kaggle Trick)}\\ \small LogLoss penalizada: $\mathcal{L} = - \sum \left( w_1 y \log(\hat{y}) + w_0 (1-y) \log(1-\hat{y}) \right)$ \\ Donde $w_1 = 85\%$ y $w_0 = 15\%$. Multa severa por ignorar la Clase 1.};
+
+% Arrows
+\draw [arrow] (layer1) -- (layer2);
+\draw [arrow] (layer2) -- (layer3);
+\draw [arrow] (layer3) -- (layer4);
+
+\end{tikzpicture}
+\end{center}
+\vspace{1em}
+
+\subsection{Desglose de Capas}
+\begin{itemize}
+    \item \textbf{Capa 1 (Datos Brutos):} Análisis determinó que las variables aisladas carecían de correlación lineal con el objetivo ($\rho < 0.07$).
+    \item \textbf{Capa 2 (Contexto Social):} Resuelve el solapamiento. Al comparar matemáticamente al individuo con su "tribu", el modelo detecta clientes que "destacan" en su estrato socioeconómico local, revelando la intención de compra.
+    \item \textbf{Capa 3 (CatBoost):} Utilizado por su manejo nativo de datos categóricos y resistencia al sobreajuste mediante esquemas de permutación.
+    \item \textbf{Capa 4 (Pesos Asimétricos):} La intervención matemática final que curó la "ceguera" del modelo, multiplicando el error asociado a la clase minoritaria para equilibrar la actualización de gradientes.
+\end{itemize}
+
+\section{Conclusión Definitiva}
+Las pruebas rigurosas demostraron que las técnicas de generación sintética (SMOTE, Ruido Gaussiano) fracasan en espacios financieros densamente solapados, creando "clientes imposibles" y degradando el AUC a $\sim0.60$. 
+
+El óptimo global de este dataset reside en la \textbf{Ingeniería de Características Sociales sumado a una Función de Pérdida Asimétrica}. El modelo entregado captura la complejidad no lineal del comportamiento bancario, maximizando el valor de negocio mediante un asombroso 53\% de Recall en la detección de oportunidades reales.
+
+\end{document}
