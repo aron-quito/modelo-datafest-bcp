@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.29 (TeX Live 2026) (preloaded format=pdflatex 2026.7.14)  6 OCT 2026 21:04
+This is pdfTeX, Version 3.141592653-2.6-1.40.29 (TeX Live 2026) (preloaded format=pdflatex 2026.7.14)  7 OCT 2026 23:42
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -797,7 +797,22 @@ LaTeX Info: Redefining \% on input line 1.
 [1
 
 {/Users/aron/Library/texlive/2026basic/texmf-var/fonts/map/pdftex/updmap/pdftex
-.map}] [2] [3] [4] (./informe_datafest.aux
+.map}] [2]
+Overfull \hbox (102.24507pt too wide) in paragraph at lines 96--97
+[]\OT1/cmr/bx/n/10.95 Varianzas in^^Suti-les eli-mi-na-das: \OT1/cmtt/m/n/10.95
+ edad[]std\OT1/cmr/m/n/10.95 , \OT1/cmtt/m/n/10.95 distancia[]sucursal[]km[]std
+\OT1/cmr/m/n/10.95 , \OT1/cmtt/m/n/10.95 visitas[]web[]ultimos[]90[]dias[]std\O
+T1/cmr/m/n/10.95 ,
+ []
+
+
+Overfull \hbox (35.57257pt too wide) in paragraph at lines 98--99
+[]\OT1/cmr/bx/n/10.95 Tendencias rui-do-sas: \OT1/cmtt/m/n/10.95 ingresos[]tren
+d\OT1/cmr/m/n/10.95 , \OT1/cmtt/m/n/10.95 ratio[]deuda[]ingresos[]trend\OT1/cmr
+/m/n/10.95 , \OT1/cmtt/m/n/10.95 saldo[]promedio[]trend\OT1/cmr/m/n/10.95 .
+ []
+
+[3] [4] (./informe_datafest.aux
 LaTeX Info: Redefining \. on input line 11.
 LaTeX Info: Redefining \% on input line 11.
 )
@@ -805,33 +820,39 @@ LaTeX Info: Redefining \% on input line 11.
 LaTeX2e <2025-11-01>
 L3 programming layer <2026-01-19>
  ***********
-Package rerunfilecheck Info: File `informe_datafest.out' has not changed.
-(rerunfilecheck)             Checksum: 3A707FFED95DAE324464BF57F8BB3E5B;1151.
+
+
+Package rerunfilecheck Warning: File `informe_datafest.out' has changed.
+(rerunfilecheck)                Rerun to get outlines right
+(rerunfilecheck)                or use package `bookmark'.
+
+Package rerunfilecheck Info: Checksums for `informe_datafest.out':
+(rerunfilecheck)             Before: 2C9EDE65EF0AC6C6589443339F6388AF;1173
+(rerunfilecheck)             After:  E5871D4C9733890A25D2FACC5FF92CD2;1508.
  ) 
 Here is how much of TeX's memory you used:
- 22979 strings out of 469006
- 435048 string characters out of 5454813
- 854776 words of memory out of 5000000
- 51308 multiletter control sequences out of 15000+600000
- 634719 words of font info for 65 fonts, out of 8000000 for 9000
+ 22973 strings out of 469006
+ 434959 string characters out of 5454813
+ 849797 words of memory out of 5000000
+ 51298 multiletter control sequences out of 15000+600000
+ 635541 words of font info for 68 fonts, out of 8000000 for 9000
  319 hyphenation exceptions out of 8191
- 84i,11n,94p,458b,800s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 84i,11n,94p,688b,800s stack positions out of 10000i,1000n,20000p,200000b,200000s
 </usr/local/texlive/2026basic/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx1
 0.pfb></usr/local/texlive/2026basic/texmf-dist/fonts/type1/public/amsfonts/cm/c
 mbx12.pfb></usr/local/texlive/2026basic/texmf-dist/fonts/type1/public/amsfonts/
-cm/cmex10.pfb></usr/local/texlive/2026basic/texmf-dist/fonts/type1/public/amsfo
-nts/cm/cmmi10.pfb></usr/local/texlive/2026basic/texmf-dist/fonts/type1/public/a
-msfonts/cm/cmmi7.pfb></usr/local/texlive/2026basic/texmf-dist/fonts/type1/publi
-c/amsfonts/cm/cmr10.pfb></usr/local/texlive/2026basic/texmf-dist/fonts/type1/pu
-blic/amsfonts/cm/cmr12.pfb></usr/local/texlive/2026basic/texmf-dist/fonts/type1
-/public/amsfonts/cm/cmr7.pfb></usr/local/texlive/2026basic/texmf-dist/fonts/typ
-e1/public/amsfonts/cm/cmr8.pfb></usr/local/texlive/2026basic/texmf-dist/fonts/t
-ype1/public/amsfonts/cm/cmsy10.pfb></usr/local/texlive/2026basic/texmf-dist/fon
-ts/type1/public/amsfonts/cm/cmtt10.pfb>
-Output written on informe_datafest.pdf (4 pages, 144574 bytes).
+cm/cmmi10.pfb></usr/local/texlive/2026basic/texmf-dist/fonts/type1/public/amsfo
+nts/cm/cmmi7.pfb></usr/local/texlive/2026basic/texmf-dist/fonts/type1/public/am
+sfonts/cm/cmr10.pfb></usr/local/texlive/2026basic/texmf-dist/fonts/type1/public
+/amsfonts/cm/cmr12.pfb></usr/local/texlive/2026basic/texmf-dist/fonts/type1/pub
+lic/amsfonts/cm/cmr8.pfb></usr/local/texlive/2026basic/texmf-dist/fonts/type1/p
+ublic/amsfonts/cm/cmsy10.pfb></usr/local/texlive/2026basic/texmf-dist/fonts/typ
+e1/public/amsfonts/cm/cmti10.pfb></usr/local/texlive/2026basic/texmf-dist/fonts
+/type1/public/amsfonts/cm/cmtt10.pfb>
+Output written on informe_datafest.pdf (4 pages, 142154 bytes).
 PDF statistics:
- 119 PDF objects out of 1000 (max. 8388607)
- 90 compressed objects within 1 object stream
- 13 named destinations out of 1000 (max. 500000)
- 61 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 113 PDF objects out of 1000 (max. 8388607)
+ 86 compressed objects within 1 object stream
+ 16 named destinations out of 1000 (max. 500000)
+ 53 words of extra memory for PDF output out of 10000 (max. 10000000)
 
