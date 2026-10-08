@@ -1,0 +1,38 @@
+{
+    "auc": 0.6049453653171986,
+    "useless_features_dropped": [
+        "region",
+        "dispositivo_principal",
+        "tiene_prestamo",
+        "es_nuevo_cliente",
+        "tiene_seguro",
+        "antiguedad_anos"
+    ],
+    "classification_report": {
+        "0": {
+            "precision": 0.8588162172499522,
+            "recall": 0.9602287913615224,
+            "f1-score": 0.9066956060873735,
+            "support": 18707.0
+        },
+        "1": {
+            "precision": 0.32608695652173914,
+            "recall": 0.10866284334440085,
+            "f1-score": 0.16300656554222323,
+            "support": 3313.0
+        },
+        "accuracy": 0.8321071752951862,
+        "macro avg": {
+            "precision": 0.5924515868858456,
+            "recall": 0.5344458173529616,
+            "f1-score": 0.5348510858147983,
+            "support": 22020.0
+        },
+        "weighted avg": {
+            "precision": 0.778664898412869,
+            "recall": 0.8321071752951862,
+            "f1-score": 0.7948045165630283,
+            "support": 22020.0
+        }
+    }
+}

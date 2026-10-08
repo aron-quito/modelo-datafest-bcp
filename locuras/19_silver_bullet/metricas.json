@@ -1,0 +1,49 @@
+{
+    "auc": 0.6250315463376148,
+    "variables_basura_eliminadas": [
+        "es_nuevo_cliente",
+        "tiene_seguro",
+        "dispositivo_principal",
+        "ocupacion",
+        "tiene_prestamo",
+        "region",
+        "dia_preferido_pago",
+        "visitas_web_ultimos_90_dias",
+        "canal_adquisicion",
+        "antiguedad_direccion_meses"
+    ],
+    "label_errors_eliminados": 29167,
+    "ceros_mentirosos": 23807,
+    "unos_mentirosos": 5360,
+    "distribucion_train_limpio": {
+        "0": 51019,
+        "1": 7894
+    },
+    "classification_report": {
+        "0": {
+            "precision": 0.881155707372616,
+            "recall": 0.6618912706473512,
+            "f1-score": 0.7559449311639549,
+            "support": 18707.0
+        },
+        "1": {
+            "precision": 0.20619979919678716,
+            "recall": 0.495925143374585,
+            "f1-score": 0.2912862334899388,
+            "support": 3313.0
+        },
+        "accuracy": 0.6369209809264306,
+        "macro avg": {
+            "precision": 0.5436777532847016,
+            "recall": 0.5789082070109681,
+            "f1-score": 0.5236155823269468,
+            "support": 22020.0
+        },
+        "weighted avg": {
+            "precision": 0.7796058016602398,
+            "recall": 0.6369209809264305,
+            "f1-score": 0.6860351098472421,
+            "support": 22020.0
+        }
+    }
+}
