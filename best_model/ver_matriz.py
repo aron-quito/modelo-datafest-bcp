@@ -43,23 +43,17 @@ for col in bool_cols:
 # Replicar el split 80/20 Clásico de la Variante 4 (seed=42)
 X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
 
-basura = [
-    "dia_preferido_pago_min", "dia_preferido_pago_max", "distancia_sucursal_km",
-    "antiguedad_direccion_meses_mean", "dia_preferido_pago", "visitas_web_ultimos_90_dias_max",
-    "visitas_web_ultimos_90_dias", "dia_preferido_pago_mean", "visitas_web_ultimos_90_dias_mean",
-    "es_nuevo_cliente", "tiene_seguro", "ingresos_trend", "ratio_deuda_ingresos_trend",
-    "saldo_promedio_trend", "edad_std", "dia_preferido_pago_std", "ingresos_std",
-    "ratio_deuda_ingresos_std", "antiguedad_direccion_meses_std", "distancia_sucursal_km_std",
-    "antiguedad_cuenta_meses_std", "saldo_promedio_std", "dias_ultima_transaccion_std",
-    "visitas_web_ultimos_90_dias_std", "numero_productos_std"
-]
-X_val_pruned = X_val.drop(columns=basura)
-
 # Cargar el modelo guardado de esa variante
 model = CatBoostClassifier()
 model.load_model('modelos/modelo_80_20_clasico.cbm')
 
-preds_class = model.predict(X_val_pruned)
+# Usar el orden exacto de variables con las que se entrenó el modelo
+X_val_pruned = X_val[model.feature_names_]
+
+from catboost import Pool
+cat_cols_pruned = [c for c in model.feature_names_ if c in cat_cols]
+pool_val = Pool(X_val_pruned, cat_features=cat_cols_pruned)
+preds_class = model.predict(pool_val)
 
 print("\n--- MATRIZ DE CONFUSIÓN ---")
 cm = confusion_matrix(y_val, preds_class)
