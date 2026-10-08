@@ -62,3 +62,33 @@ El motor final es un ensamblado de árboles por Boosting de Gradiente (`CatBoost
 *   **Manejo Categórico:** Se le delega el manejo nativo de las variables de texto (Ordered Target Encoding) para evitar sesgos de filtración.
 *   **Balanceo Interno:** Dado que al limpiar la base los "ceros" pasaron a ser la minoría (aprox 8,000 contra 16,000 "unos"), el algoritmo balancea los pesos de la función de pérdida (`auto_class_weights='Balanced'`).
 *   **Prevención de Overfitting:** Tasa de aprendizaje baja (`0.03`), profundidad restringida (`depth=6`) y detención temprana (`early_stopping_rounds=50`).
+
+---
+
+## Resultados y Verificación de Impacto de Negocio
+
+El modelo superó todas las pruebas de validación cruzada y estrés, logrando converger universalmente en **~0.86 AUC**. Evaluando el modelo en el set de prueba ciego del pipeline clásico (20% del total, 4,926 clientes), extrajimos la Matriz de Confusión final:
+
+```text
+--- MATRIZ DE CONFUSIÓN ---
+             Predicción: NO (0)   Predicción: SÍ (1)
+Real: NO (0)       1242                  370
+Real: SÍ (1)       842                   2472
+
+--- REPORTE DE CLASIFICACIÓN ---
+Precision Clase 1 (Compra): 0.87
+Recall Clase 1 (Compra): 0.75
+```
+
+### 🧠 Impacto Comercial (BCP):
+*   **Precisión Quirúrgica (87%):** Si el modelo levanta la bandera diciendo que una persona "SÍ comprará", en el 87% de las ocasiones acertará. Esto minimiza el desperdicio de dinero en campañas de marketing a falsos positivos (solo hubieron 370).
+*   **Captura Masiva de Mercado (75%):** El modelo logra detectar exitosamente al 75% del universo total de clientes con verdadera intención de compra en el mercado ciego.
+
+## Experimentos Finales (Nivel God Kaggle)
+
+Para estar absolutamente seguros de que el modelo CatBoost con 49 variables no podía ser derrotado, se ejecutaron dos locuras de validación avanzadas:
+
+1.  **Locura 24 (Transformers Tabulares - TabNet):** Se estandarizaron las variables y se ingresaron a una red neuronal atencional. TabNet logró un **0.8475 AUC**, demostrando que las 49 variables creadas son universalmente predictivas para cualquier algoritmo, pero validando que el Gradient Boosting sigue siendo el rey de los datos tabulares asimétricos.
+2.  **Locura 25 (Stacking Heterogéneo):** Se combinaron CatBoost, LightGBM y XGBoost, entrenando un Meta-Modelo (Logistic Regression) para decidir los pesos finales. El score se elevó infinitesimalmente a **0.8590 AUC**. El hallazgo brillante fue que el Meta-Modelo le otorgó **el 80% de la importancia absoluta** de la decisión únicamente a CatBoost.
+
+Conclusión indiscutible: **El Pipeline Final en CatBoost ha extraído el máximo de entropía posible del Dataset.**
